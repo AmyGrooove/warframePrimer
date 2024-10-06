@@ -8,20 +8,21 @@ interface IWeaponLinkData {
 }
 
 const parseWeaponsList = async (url: string) => {
-  try {
-    const { data } = await axios.get(url);
+  const { data } = await axios.get(url);
 
-    const parsedPage = load(data);
+  const weapons: IWeaponLinkData[] = [];
+  const parsedPage = load(data);
+  parsedPage("div.wds-tab__content")
+    .slice(0, 4)
+    .find("tr")
+    .filter((_, row) => {
+      const thText = parsedPage(row).find("th").text().trim();
 
-    const table = parsedPage("table");
-    if (!table.length) {
-      console.log("Таблица не найдена.");
-      return null;
-    }
-
-    const weapons: IWeaponLinkData[] = [];
-    table.find("td").each((_, element) => {
-      const span = parsedPage(element).find("span");
+      return thText !== "Специальное" && thText !== "Китган";
+    })
+    .find("span")
+    .each((_, element) => {
+      const span = parsedPage(element);
       const anchor = span.find("a");
       const weaponName = span.attr("data-param");
       const weaponLink = anchor.attr("href");
@@ -32,10 +33,7 @@ const parseWeaponsList = async (url: string) => {
       }
     });
 
-    return weapons;
-  } catch (error) {
-    console.error("Ошибка при парсинге:", error);
-  }
+  return weapons;
 };
 
 export { parseWeaponsList };

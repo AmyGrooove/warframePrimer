@@ -6,18 +6,20 @@ import fs from "fs";
 const parseWeapons = async () => {
   console.time("END. Script execution time");
 
-  const fullWeaponsData = [];
+  const fullWeaponsData: any = [];
 
   for (const weaponType of weaponTypes) {
     const weaponList = await parseWeaponsList(weaponType);
 
     if (!weaponList) continue;
 
-    for (const weapon of weaponList) {
-      const weaponData = await parseWeaponData(weapon.link, weapon.name);
+    Promise.all(
+      weaponList.map(async (weapon) => {
+        const weaponData = await parseWeaponData(weapon.link, weapon.name);
 
-      if (weaponData) fullWeaponsData.push(weaponData);
-    }
+        if (weaponData) fullWeaponsData.push(weaponData);
+      }),
+    );
   }
 
   fs.writeFileSync(
